@@ -18,8 +18,8 @@ jobs:
           git lfs install
           git lfs pull
 
-      - name: Push to hub
+      - name: Push to hub (force first sync)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push https://ash001:${HF_TOKEN}@huggingface.co/spaces/ash001/LangGraph_Multi-Agent_Orchestrator HEAD:main
+          git push --force https://ash001:${HF_TOKEN}@huggingface.co/spaces/ash001/LangGraph_Multi-Agent_Orchestrator HEAD:main
