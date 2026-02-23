@@ -183,7 +183,7 @@ Add these as **Secrets**:
 
 | Variable         | Default                                         | Purpose                                              |
 | ---------------- | ----------------------------------------------- | ---------------------------------------------------- |
-| `GROQ_API_KEY`   | (none)                                          | Enables Groq LLM calls                               |
+| `GROQ_API_KEY`   | (none)                                          | **Required**. Enables Groq LLM calls                 |
 | `LLM_MODEL`      | `meta-llama/llama-4-maverick-17b-128e-instruct` | Default Groq model                                   |
 | `SQLITE_PATH`    | `student.db`                                    | Path to SQLite DB (set to `school.db` for this repo) |
 | `NEO4J_URI`      | (empty)                                         | Neo4j connection URI                                 |
