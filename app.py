@@ -15,7 +15,7 @@ from orchestrator.graphs import build_router_graph, build_tools_agent_graph
 
 load_dotenv()
 
-st.set_page_config(page_title="Multi-Agent Orchestration (LangGraph)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Multi-Agent Orchestrator (LangGraph)", page_icon="🧭", layout="wide")
 
 
 def _dict_messages_to_lc(messages: list[dict]) -> list[BaseMessage]:
@@ -89,7 +89,7 @@ def _rewrite_followup_to_standalone(settings: Settings, chat_messages: list[dict
 
 
 # --- Sidebar ---
-st.sidebar.title("🧭 Multi-Agent Orchestration")
+st.sidebar.title("🧭 Multi-Agent Orchestrator")
 
 page = st.sidebar.radio(
     "Navigation",
