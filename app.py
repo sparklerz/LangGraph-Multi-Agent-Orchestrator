@@ -122,6 +122,11 @@ st.sidebar.subheader("Neo4j (Graph DB)")
 neo4j_uri = st.sidebar.text_input("NEO4J_URI", value=os.getenv("NEO4J_URI", ""))
 neo4j_username = st.sidebar.text_input("NEO4J_USERNAME", value=os.getenv("NEO4J_USERNAME", ""))
 neo4j_password = st.sidebar.text_input("NEO4J_PASSWORD", value=os.getenv("NEO4J_PASSWORD", ""), type="password")
+neo4j_database = st.sidebar.text_input(
+    "NEO4J_DATABASE",
+    value=os.getenv("NEO4J_DATABASE", ""),
+    help="Aura names this after the instance id (e.g. 4b4dbb91), not 'neo4j'.",
+)
 
 st.sidebar.subheader("UI")
 show_routing = st.sidebar.checkbox("Show routed agent", value=True)
@@ -134,6 +139,7 @@ settings = Settings(
     neo4j_uri=neo4j_uri,
     neo4j_username=neo4j_username,
     neo4j_password=neo4j_password,
+    neo4j_database=neo4j_database,
     wiki_doc_content_chars_max=int(os.getenv("WIKI_DOC_CHARS", "2000")),
     debug=os.getenv("DEBUG", "0") in ("1", "true", "True"),
 )
@@ -148,6 +154,7 @@ def _router_graph_cached(model: str):
         neo4j_uri=settings.neo4j_uri,
         neo4j_username=settings.neo4j_username,
         neo4j_password=settings.neo4j_password,
+        neo4j_database=settings.neo4j_database,
         wiki_doc_content_chars_max=settings.wiki_doc_content_chars_max,
         debug=settings.debug,
     )
@@ -163,6 +170,7 @@ def _tools_graph_cached(model: str):
         neo4j_uri=settings.neo4j_uri,
         neo4j_username=settings.neo4j_username,
         neo4j_password=settings.neo4j_password,
+        neo4j_database=settings.neo4j_database,
         wiki_doc_content_chars_max=settings.wiki_doc_content_chars_max,
         debug=settings.debug,
     )

@@ -15,6 +15,8 @@ class Settings:
     neo4j_uri: str = os.getenv("NEO4J_URI", "")
     neo4j_username: str = os.getenv("NEO4J_USERNAME", "")
     neo4j_password: str = os.getenv("NEO4J_PASSWORD", "")
+    # Aura names this after the instance id (e.g. 4b4dbb91), not "neo4j".
+    neo4j_database: str = os.getenv("NEO4J_DATABASE", "")
 
     # Tool settings
     # wiki_top_k_results: int = int(os.getenv("WIKI_TOP_K", "3"))

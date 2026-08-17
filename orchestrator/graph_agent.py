@@ -27,6 +27,7 @@ def _get_graph(settings: Settings):
         url=settings.neo4j_uri,
         username=settings.neo4j_username,
         password=settings.neo4j_password,
+        database=settings.neo4j_database or None,
     )
 
 def graph_answer(settings: Settings, question: str) -> Dict[str, Any]:
