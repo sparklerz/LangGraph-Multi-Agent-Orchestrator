@@ -125,7 +125,7 @@ neo4j_password = st.sidebar.text_input("NEO4J_PASSWORD", value=os.getenv("NEO4J_
 neo4j_database = st.sidebar.text_input(
     "NEO4J_DATABASE",
     value=os.getenv("NEO4J_DATABASE", ""),
-    help="Aura names this after the instance id (e.g. 4b4dbb91), not 'neo4j'.",
+    help="Aura names this after the instance id.",
 )
 
 st.sidebar.subheader("UI")
