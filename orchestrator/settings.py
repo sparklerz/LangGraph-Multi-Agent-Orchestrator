@@ -6,7 +6,7 @@ import os
 class Settings:
     # LLM
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
-    llm_model: str = os.getenv("LLM_MODEL", "meta-llama/llama-4-maverick-17b-128e-instruct")
+    llm_model: str = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 
     # SQL (SQLite by default)
     sqlite_path: str = os.getenv("SQLITE_PATH", "student.db")

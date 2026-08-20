@@ -99,17 +99,13 @@ page = st.sidebar.radio(
 
 # Runtime settings overrides (UI -> env-like)
 st.sidebar.subheader("Model")
-# llm_model = st.sidebar.text_input("LLM_MODEL (Groq)", value=os.getenv("LLM_MODEL", "llama-3.1-8b-instant"))
 MODEL_OPTIONS = [
-    "llama-3.1-8b-instant",
-    "meta-llama/llama-4-maverick-17b-128e-instruct",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "moonshotai/kimi-k2-instruct-0905",
     "openai/gpt-oss-120b",
-    "qwen/qwen3-32b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.6-27b",
 ]
 
-default_model = os.getenv("LLM_MODEL", "meta-llama/llama-4-maverick-17b-128e-instruct")
+default_model = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 if default_model not in MODEL_OPTIONS:
     MODEL_OPTIONS.insert(0, default_model)
 
