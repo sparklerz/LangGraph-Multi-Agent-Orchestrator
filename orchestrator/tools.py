@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from langchain_core.tools import tool
 from langchain_community.utilities import WikipediaAPIWrapper
-from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun, ArxivQueryRun
+from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 
 # --- Calculator tool (safe arithmetic) ---
 import ast
@@ -101,15 +101,56 @@ def _make_wikipedia_tool(*, wiki_k: int, wiki_chars: int):
 
     return wikipedia_search
 
-def make_web_wiki_arxiv_tools(*, wiki_k: int = 3, wiki_chars: int = 2000):
+def _make_arxiv_tool(*, arxiv_k: int = 3, doc_chars: int = 4000):
+    """arXiv tool driven through arxiv.Client rather than langchain's wrapper.
+
+    langchain_community still calls Search(...).results(), which arxiv 4.0
+    removed -- it surfaces as "'Search' object has no attribute 'results'".
+    Client.results() has existed since arxiv 2.0, so this works on every version
+    requirements.txt allows. Output format matches ArxivQueryRun, so nothing
+    downstream has to change.
+    """
+    import arxiv
+
+    client = arxiv.Client()
+
+    @tool("arxiv")
+    def arxiv_search(query: str) -> str:
+        """Search arXiv for research papers; returns title, authors, and abstract.
+
+        Pass a paper title or a few topic keywords, not the user's full question.
+        arXiv supports field prefixes -- when you know the exact title use
+        ti:"Attention Is All You Need", because bare keywords rank the real paper
+        far down. au:"Author Name" filters by author.
+        Use this when the question is about a paper, its authors, or affiliations.
+        """
+        try:
+            search = arxiv.Search(query=query[:300], max_results=arxiv_k)
+            docs = [
+                f"Published: {r.updated.date()}\n"
+                f"Title: {r.title}\n"
+                f"Authors: {', '.join(a.name for a in r.authors)}\n"
+                f"Summary: {r.summary}"
+                for r in client.results(search)
+            ]
+        except Exception as e:  # noqa: BLE001 - surface a readable message to the agent
+            return f"[arxiv error] {type(e).__name__}: {e}"
+
+        if not docs:
+            return "No good Arxiv Result was found"
+        return "\n\n".join(docs)[:doc_chars]
+
+    return arxiv_search
+
+def make_web_wiki_arxiv_tools(*, wiki_k: int = 3, wiki_chars: int = 2000, arxiv_k: int = 3):
     """Return tool objects compatible with LangGraph ToolNode."""
 
     web = DuckDuckGoSearchRun()
 
     wiki = _make_wikipedia_tool(wiki_k=wiki_k, wiki_chars=wiki_chars)
 
-    # ArxivQueryRun works similarly; its underlying API doesn't require keys.
-    arxiv = ArxivQueryRun()
+    # Its underlying API doesn't require keys.
+    arxiv = _make_arxiv_tool(arxiv_k=arxiv_k)
 
     return [web, wiki, arxiv, calculator]
 
