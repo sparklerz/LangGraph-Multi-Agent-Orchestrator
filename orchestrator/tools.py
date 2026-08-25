@@ -1,4 +1,6 @@
 from __future__ import annotations
+import json
+import os
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -49,14 +51,62 @@ def calculator(expression: str) -> str:
         return f"[calculator error] {e}"
 
 # --- Web/Wiki/Arxiv tools ---
+
+# Wikimedia blocks the shared default User-Agent the `wikipedia` package ships with
+# and answers 403/429 with a text/plain body. That package calls r.json() without
+# checking the status, so the failure surfaces as a bare
+# "Expecting value: line 1 column 1 (char 0)". Send our own descriptive agent per
+# https://meta.wikimedia.org/wiki/User-Agent_policy instead.
+DEFAULT_WIKI_USER_AGENT = (
+    "LangGraph-Multi-Agent-Orchestrator/0.1 "
+    "(https://github.com/sparklerz/LangGraph-Multi-Agent-Orchestrator)"
+)
+
+def _configure_wikipedia_client() -> None:
+    """Give the `wikipedia` package a compliant User-Agent and polite pacing."""
+    try:
+        import wikipedia
+    except ImportError:
+        return
+    wikipedia.set_user_agent(os.getenv("WIKI_USER_AGENT", DEFAULT_WIKI_USER_AGENT))
+    wikipedia.set_rate_limiting(True)
+
+def _make_wikipedia_tool(*, wiki_k: int, wiki_chars: int):
+    """Wikipedia tool that reports API rejections instead of leaking a JSON error."""
+    _configure_wikipedia_client()
+
+    # IMPORTANT: WikipediaQueryRun requires api_wrapper in your installed versions.
+    wiki_wrapper = WikipediaAPIWrapper(top_k_results=wiki_k, doc_content_chars_max=wiki_chars)
+    runner = WikipediaQueryRun(api_wrapper=wiki_wrapper)
+
+    @tool("wikipedia")
+    def wikipedia_search(query: str) -> str:
+        """Look up an article on Wikipedia and return its summary.
+
+        Pass a short topic or entity name -- the article title you expect, e.g.
+        "Attention Is All You Need" or "Alan Turing". Do NOT pass the user's full
+        question: Wikipedia matches loose keywords, so a long sentence returns
+        unrelated articles.
+        """
+        try:
+            return runner.run(query)
+        except json.JSONDecodeError:
+            return (
+                "[wikipedia unavailable] Wikipedia's API returned a non-JSON response "
+                "(usually a 403/429 for the User-Agent or rate limit). Set WIKI_USER_AGENT "
+                "to a descriptive string with contact info and retry."
+            )
+        except Exception as e:  # noqa: BLE001 - surface a readable message to the agent
+            return f"[wikipedia error] {type(e).__name__}: {e}"
+
+    return wikipedia_search
+
 def make_web_wiki_arxiv_tools(*, wiki_k: int = 3, wiki_chars: int = 2000):
     """Return tool objects compatible with LangGraph ToolNode."""
 
     web = DuckDuckGoSearchRun()
 
-    # IMPORTANT: WikipediaQueryRun requires api_wrapper in your installed versions.
-    wiki_wrapper = WikipediaAPIWrapper(top_k_results=wiki_k, doc_content_chars_max=wiki_chars)
-    wiki = WikipediaQueryRun(api_wrapper=wiki_wrapper)
+    wiki = _make_wikipedia_tool(wiki_k=wiki_k, wiki_chars=wiki_chars)
 
     # ArxivQueryRun works similarly; its underlying API doesn't require keys.
     arxiv = ArxivQueryRun()

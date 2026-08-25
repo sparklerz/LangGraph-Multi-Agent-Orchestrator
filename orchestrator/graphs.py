@@ -122,6 +122,20 @@ def _rewrite_to_standalone(llm, messages: list[BaseMessage]) -> str:
     return rewritten or question
 
 
+TOOLS_AGENT_PROMPT = """You are a research assistant with web search, Wikipedia, arXiv, and a calculator.
+
+Search tools match keywords, not questions. Never pass the user's full sentence as a
+search query -- pull out the topic first.
+  Question: "who wrote attention is all you need paper and which institution are they from"
+  Search:   "Attention Is All You Need"
+
+Pick the right tool: wikipedia for encyclopedic facts, arxiv for research papers,
+web search for recent events, calculator for arithmetic.
+
+If a tool errors or comes back with unrelated articles, retry with a different query or
+a different tool before answering. Never show a raw tool error to the user."""
+
+
 def build_tools_agent_graph(settings: Settings):
     tools = make_web_wiki_arxiv_tools(
         wiki_chars=settings.wiki_doc_content_chars_max,
@@ -129,7 +143,11 @@ def build_tools_agent_graph(settings: Settings):
     llm = get_llm(settings, temperature=0).bind_tools(tools)
 
     def assistant(state: RouterState):
-        msg = llm.invoke(state["messages"])
+        msgs = list(state["messages"])
+        # Prepend rather than store, so the prompt never lands in graph state.
+        if not any(isinstance(m, SystemMessage) for m in msgs):
+            msgs = [SystemMessage(content=TOOLS_AGENT_PROMPT)] + msgs
+        msg = llm.invoke(msgs)
         return {"messages": [msg]}
 
     g = StateGraph(RouterState)
