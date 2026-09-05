@@ -100,12 +100,15 @@ page = st.sidebar.radio(
 # Runtime settings overrides (UI -> env-like)
 st.sidebar.subheader("Model")
 MODEL_OPTIONS = [
+    "qwen/qwen3.8-27b",
     "openai/gpt-oss-120b",
-    "openai/gpt-oss-20b",
     "qwen/qwen3.6-27b",
+    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-20b",
+    "llama-3.1-8b-instant",
 ]
 
-default_model = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
+default_model = os.getenv("LLM_MODEL", "qwen/qwen3.8-27b")
 if default_model not in MODEL_OPTIONS:
     MODEL_OPTIONS.insert(0, default_model)
 
