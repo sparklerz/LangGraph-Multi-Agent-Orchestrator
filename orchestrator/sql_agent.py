@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 
 from orchestrator.settings import Settings
 
-from langchain_groq import ChatGroq
+from orchestrator.factories import build_chat_groq
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.agent_toolkits.sql.base import create_sql_agent
@@ -37,19 +37,9 @@ def _make_sql_db_readonly(sqlite_path: Path) -> SQLDatabase:
 
 
 def _make_llm(settings: Settings):
-    # ChatGroq param names differ across versions; support both.
-    try:
-        return ChatGroq(
-            api_key=settings.groq_api_key,
-            model=settings.llm_model,
-            temperature=0,
-        )
-    except TypeError:
-        return ChatGroq(
-            groq_api_key=settings.groq_api_key,
-            model_name=settings.llm_model,
-            temperature=0,
-        )
+    # Built through the shared factory so the qwen thinking override and the
+    # cross-version ChatGroq handling live in one place.
+    return build_chat_groq(settings, temperature=0)
 
 
 def make_sql_agent(settings: Settings, *, db_path: Optional[str] = None):
