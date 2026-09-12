@@ -90,7 +90,7 @@ GROQ_API_KEY="YOUR_GROQ_KEY"
 SQLITE_PATH="school.db"
 
 # Optional model override (Groq)
-LLM_MODEL="qwen/qwen3.8-27b"
+LLM_MODEL="openai/gpt-oss-120b"
 
 # Optional: enable Neo4j Graph Agent
 NEO4J_URI="neo4j+s://97329836.databases.neo4j.io"
@@ -162,7 +162,7 @@ In your Space: **Settings → Variables and secrets**
 Add **Variables**:
 
 * `SQLITE_PATH=school.db`
-* Optional: `LLM_MODEL=qwen/qwen3.8-27b`
+* Optional: `LLM_MODEL=openai/gpt-oss-120b`
 * Optional: `WIKI_DOC_CHARS=2000`
 * Optional: `DEBUG=1`
 
@@ -184,7 +184,7 @@ Add these as **Secrets**:
 | Variable         | Default                                         | Purpose                                              |
 | ---------------- | ----------------------------------------------- | ---------------------------------------------------- |
 | `GROQ_API_KEY`   | (none)                                          | **Required**. Enables Groq LLM calls                 |
-| `LLM_MODEL`      | `qwen/qwen3.8-27b`                             | Default Groq model                                   |
+| `LLM_MODEL`      | `openai/gpt-oss-120b`                          | Default Groq model                                   |
 | `SQLITE_PATH`    | `student.db`                                    | Path to SQLite DB (set to `school.db` for this repo) |
 | `NEO4J_URI`      | (empty)                                         | Neo4j connection URI                                 |
 | `NEO4J_USERNAME` | (empty)                                         | Neo4j username                                       |
