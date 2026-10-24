@@ -63,9 +63,35 @@ Useful for open-world questions outside your databases:
 User → Router (LangGraph) → one route:
 ├─ SQL Agent   (SQLite, read-only)
 ├─ Graph Agent (Neo4j → Cypher → answer grounded in results)
-├─ Tools Agent (DuckDuckGo + Wikipedia + arXiv + Calculator)
+├─ Tools Agent (DuckDuckGo + Wikipedia + arXiv + Calculator, each an MCP server)
 └─ General     (LLM-only)
 
+```
+
+## 🔌 Tools over MCP
+
+Each of the Tools Agent's tools runs as its **own MCP server** ([`mcp_servers/`](mcp_servers/)),
+and the orchestrator is the **MCP client** ([`orchestrator/mcp_tools.py`](orchestrator/mcp_tools.py)):
+
+```
+Tools Agent (LangGraph: assistant ⇄ ToolNode)
+   │  MultiServerMCPClient (langchain-mcp-adapters), stdio
+   ├─ mcp_servers.web_search_server   → duckduckgo_search
+   ├─ mcp_servers.wikipedia_server    → wikipedia
+   ├─ mcp_servers.arxiv_server        → arxiv
+   └─ mcp_servers.calculator_server   → calculator
+```
+
+- At startup the client launches every server and discovers its tools (`tools/list`).
+  They come back as ordinary LangChain tools, so `bind_tools` and `ToolNode` are unchanged.
+- Each tool call is a `tools/call` request to that tool's server process.
+- MCP tools are async-only, so the tools graph is driven with `ainvoke`.
+- Set `USE_MCP_TOOLS=0` to fall back to the in-process tools in `orchestrator/tools.py`.
+
+Any MCP client can use these servers on its own, e.g. with the MCP Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector python -m mcp_servers.wikipedia_server
 ```
 
 ## 🚀 Run locally (Python)
@@ -190,6 +216,7 @@ Add these as **Secrets**:
 | `NEO4J_USERNAME` | (empty)                                         | Neo4j username                                       |
 | `NEO4J_PASSWORD` | (empty)                                         | Neo4j password                                       |
 | `WIKI_DOC_CHARS` | `2000`                                          | Wikipedia doc truncation size for tools              |
+| `USE_MCP_TOOLS`  | `1`                                             | Serve the Tools Agent's tools from MCP servers       |
 | `DEBUG`          | `0`                                             | Show more intermediate/debug info                    |
 
 ---

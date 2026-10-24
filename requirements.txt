@@ -9,6 +9,10 @@ langchain-groq>=0.3.0
 langgraph>=0.2.0
 langchain-neo4j
 
+# MCP (each Tools Agent tool runs as its own MCP server)
+mcp>=1.9
+langchain-mcp-adapters>=0.1.0
+
 # Tools
 ddgs
 wikipedia>=1.4.0

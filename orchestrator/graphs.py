@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated, Any, Dict, List, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
@@ -9,6 +10,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 
 from orchestrator.factories import get_llm
 from orchestrator.graph_agent import graph_answer
+from orchestrator.mcp_tools import load_mcp_tools
 from orchestrator.settings import Settings
 from orchestrator.sql_agent import sql_answer
 from orchestrator.tools import make_web_wiki_arxiv_tools
@@ -137,9 +139,13 @@ a different tool before answering. Never show a raw tool error to the user."""
 
 
 def build_tools_agent_graph(settings: Settings):
-    tools = make_web_wiki_arxiv_tools(
-        wiki_chars=settings.wiki_doc_content_chars_max,
-    )
+    """Run the returned graph with ainvoke: MCP tools have no sync path."""
+    if settings.use_mcp_tools:
+        tools = load_mcp_tools(settings)
+    else:
+        tools = make_web_wiki_arxiv_tools(
+            wiki_chars=settings.wiki_doc_content_chars_max,
+        )
     llm = get_llm(settings, temperature=0).bind_tools(tools)
 
     def assistant(state: RouterState):
@@ -209,7 +215,7 @@ def build_router_graph(settings: Settings):
         return {"route": "graph", "messages": [AIMessage(content=str(out["answer"]))], "debug": dbg}
 
     def tools_node(state: RouterState):
-        out_state = tools_graph.invoke({"messages": state["messages"]})
+        out_state = asyncio.run(tools_graph.ainvoke({"messages": state["messages"]}))
         out_msgs = out_state.get("messages", [])
         tools_used = _extract_tool_names(out_msgs)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import streamlit as st
 from dotenv import load_dotenv
@@ -461,6 +462,8 @@ elif page == "Graph Agent":
 elif page == "Tools Agent":
     st.title("🧰 Tools Agent (Chat)")
     st.write("Tool-Assisted Research Chat (Web + Wikipedia + arXiv + Calculator).")
+    if settings.use_mcp_tools:
+        st.caption("🔌 Each tool is served by its own MCP server (stdio).")
 
     if "tools_messages" not in st.session_state:
         st.session_state.tools_messages = [{"role": "assistant", "content": "Ask a question — I'll search web/Wikipedia/arXiv and use tools when needed."}]
@@ -488,7 +491,8 @@ elif page == "Tools Agent":
                     tools_graph = _tools_graph_cached(settings.llm_model)
                     msgs = _dict_messages_to_lc(st.session_state.tools_messages)
 
-                    out = tools_graph.invoke({"messages": msgs})
+                    # ainvoke: MCP tools are async-only.
+                    out = asyncio.run(tools_graph.ainvoke({"messages": msgs}))
                     out_msgs = out.get("messages", []) or []
 
                     last_ai = next((mm for mm in reversed(out_msgs) if isinstance(mm, AIMessage)), None)
@@ -533,6 +537,7 @@ else:
         st.success("GROQ_API_KEY is set.")
 
     st.write("**Current model:**", settings.llm_model)
+    st.write("**Tools transport:**", "MCP (stdio servers)" if settings.use_mcp_tools else "in-process")
     st.write("**SQLite path:**", settings.sqlite_path)
 
     if settings.neo4j_uri:

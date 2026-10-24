@@ -21,6 +21,8 @@ class Settings:
     # Tool settings
     # wiki_top_k_results: int = int(os.getenv("WIKI_TOP_K", "3"))
     wiki_doc_content_chars_max: int = int(os.getenv("WIKI_DOC_CHARS", "2000"))
+    # Serve the Tools Agent's tools from MCP servers (mcp_servers/) instead of in-process.
+    use_mcp_tools: bool = os.getenv("USE_MCP_TOOLS", "1") in ("1","true","True","yes","YES")
 
     # Debug
     debug: bool = os.getenv("DEBUG", "0") in ("1","true","True","yes","YES")
