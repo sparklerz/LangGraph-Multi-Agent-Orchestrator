@@ -8,6 +8,7 @@ langchain-community>=0.4.0
 langchain-groq>=0.3.0
 langgraph>=0.2.0
 langchain-neo4j
+langsmith
 
 # MCP (each Tools Agent tool runs as its own MCP server)
 mcp>=1.9

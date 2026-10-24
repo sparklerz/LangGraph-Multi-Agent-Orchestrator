@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 import streamlit as st
+from langsmith.utils import tracing_is_enabled
 from dotenv import load_dotenv
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
@@ -221,7 +222,7 @@ if page == "Router Chat":
                     graph = _router_graph_cached(settings.llm_model)
                     msgs = _dict_messages_to_lc(st.session_state.router_messages)
 
-                    out = graph.invoke({"messages": msgs})
+                    out = graph.invoke({"messages": msgs}, config={"run_name": "router_chat"})
                     out_msgs = out.get("messages", []) or []
 
                     last_ai = next((mm for mm in reversed(out_msgs) if isinstance(mm, AIMessage)), None)
@@ -492,7 +493,7 @@ elif page == "Tools Agent":
                     msgs = _dict_messages_to_lc(st.session_state.tools_messages)
 
                     # ainvoke: MCP tools are async-only.
-                    out = asyncio.run(tools_graph.ainvoke({"messages": msgs}))
+                    out = asyncio.run(tools_graph.ainvoke({"messages": msgs}, config={"run_name": "tools_agent"}))
                     out_msgs = out.get("messages", []) or []
 
                     last_ai = next((mm for mm in reversed(out_msgs) if isinstance(mm, AIMessage)), None)
@@ -538,6 +539,10 @@ else:
 
     st.write("**Current model:**", settings.llm_model)
     st.write("**Tools transport:**", "MCP (stdio servers)" if settings.use_mcp_tools else "in-process")
+    if tracing_is_enabled():
+        st.success(f"LangSmith tracing is on (project `{os.getenv('LANGSMITH_PROJECT', 'default')}`).")
+    else:
+        st.info("LangSmith tracing is off. Set LANGSMITH_TRACING=true and LANGSMITH_API_KEY to enable it.")
     st.write("**SQLite path:**", settings.sqlite_path)
 
     if settings.neo4j_uri:

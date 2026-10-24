@@ -33,6 +33,9 @@ def mcp_connections(settings: Settings) -> dict:
     # stdio_client forwards only a short allowlist of env vars by default; the
     # servers also need WIKI_*, SSL_CERT_FILE and any proxy settings.
     env = {**os.environ, "WIKI_DOC_CHARS": str(settings.wiki_doc_content_chars_max)}
+    # The client side already traces each tool call inside the agent's run.
+    # Tracing in the servers too would log every call again as a stray root trace.
+    env.update(LANGSMITH_TRACING="false", LANGCHAIN_TRACING_V2="false")
     return {
         name: {
             "transport": "stdio",

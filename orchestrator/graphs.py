@@ -215,7 +215,9 @@ def build_router_graph(settings: Settings):
         return {"route": "graph", "messages": [AIMessage(content=str(out["answer"]))], "debug": dbg}
 
     def tools_node(state: RouterState):
-        out_state = asyncio.run(tools_graph.ainvoke({"messages": state["messages"]}))
+        out_state = asyncio.run(
+            tools_graph.ainvoke({"messages": state["messages"]}, config={"run_name": "tools_agent"})
+        )
         out_msgs = out_state.get("messages", [])
         tools_used = _extract_tool_names(out_msgs)
 

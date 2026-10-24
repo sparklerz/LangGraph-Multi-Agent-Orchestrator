@@ -94,6 +94,33 @@ Any MCP client can use these servers on its own, e.g. with the MCP Inspector:
 npx @modelcontextprotocol/inspector python -m mcp_servers.wikipedia_server
 ```
 
+## 🔭 Observability (LangSmith)
+
+LangGraph and LangChain trace themselves once these are set (in `.env`, or as Space secrets/variables):
+
+```bash
+LANGSMITH_TRACING="true"
+LANGSMITH_API_KEY="lsv2_..."
+LANGSMITH_PROJECT="multi-agent-orchestrator"
+```
+
+Each chat turn is one trace, with every node, LLM call and tool call nested inside:
+
+```
+router_chat
+├─ router (LLM → "tools")
+└─ tools
+   └─ tools_agent: assistant (LLM) → tools (arxiv via MCP) → assistant (LLM)
+```
+
+- The **Graph Agent**'s Cypher and answer calls are grouped under one `graph_agent` run (`@traceable`);
+  only the question is logged, never `Settings`, which holds the API key and Neo4j password.
+- MCP tool calls are traced on the client side; tracing is switched off inside the server processes
+  so each call isn't logged twice.
+- The **Settings / Health Check** page shows whether tracing is on.
+
+---
+
 ## 🚀 Run locally (Python)
 
 ### 1) Install
@@ -217,6 +244,9 @@ Add these as **Secrets**:
 | `NEO4J_PASSWORD` | (empty)                                         | Neo4j password                                       |
 | `WIKI_DOC_CHARS` | `2000`                                          | Wikipedia doc truncation size for tools              |
 | `USE_MCP_TOOLS`  | `1`                                             | Serve the Tools Agent's tools from MCP servers       |
+| `LANGSMITH_TRACING` | (off)                                        | Set `true` to send traces to LangSmith               |
+| `LANGSMITH_API_KEY` | (none)                                       | LangSmith API key                                    |
+| `LANGSMITH_PROJECT` | `default`                                    | LangSmith project traces are logged under            |
 | `DEBUG`          | `0`                                             | Show more intermediate/debug info                    |
 
 ---

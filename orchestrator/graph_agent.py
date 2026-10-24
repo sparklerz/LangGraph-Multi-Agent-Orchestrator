@@ -6,6 +6,7 @@ from orchestrator.settings import Settings
 from orchestrator.factories import get_llm
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langsmith import traceable
 
 try:
     from langchain_community.graphs import Neo4jGraph
@@ -30,6 +31,9 @@ def _get_graph(settings: Settings):
         database=settings.neo4j_database or None,
     )
 
+# Groups the Cypher and answer LLM calls into one trace. Only the question is
+# logged: Settings carries the Groq key and Neo4j password.
+@traceable(name="graph_agent", process_inputs=lambda i: {"question": i.get("question")})
 def graph_answer(settings: Settings, question: str) -> Dict[str, Any]:
     """
     A simple Graph DB agent:
